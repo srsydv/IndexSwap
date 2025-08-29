@@ -95,4 +95,49 @@ contract Vault {
         depositCap = _depositCap;
         decimals = _decimals;
     }
+
+
+     // -----------------
+    // User actions
+    // -----------------
+    function deposit(
+        uint256 assets,
+        address receiver
+    ) external returns (uint256 shares) {
+        require(totalAssets() + assets <= depositCap, "CAP");
+        asset.safeTransferFrom(msg.sender, address(this), assets);
+        (uint256 net, uint256 entryFee) = fees.takeEntryFee(assets);
+        if (entryFee > 0) IERC20(asset).transfer(fees.treasury(), entryFee);
+        shares = convertToShares(net);
+        _mint(receiver, shares);
+        emit Deposit(msg.sender, receiver, assets, shares);
+    }
+    
+
+
+    // -----------------
+    // View helpers
+    // -----------------
+
+    function convertToShares(uint256 assets) public view returns (uint256) {
+        uint256 ts = totalSupply;
+        uint256 ta = totalAssets();
+        return ts == 0 || ta == 0 ? assets : (assets * ts) / ta;
+    }
+
+
+    // -----------------
+    // Internals
+    // -----------------
+    function _assetBal() internal view returns (uint256) {
+        return IERC20(asset).balanceOf(address(this));
+    }
+
+    function _mint(address to, uint256 amount) internal {
+        totalSupply += amount;
+        balanceOf[to] += amount;
+    }
+
+
+
 }
