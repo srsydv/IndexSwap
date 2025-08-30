@@ -19,8 +19,6 @@ interface IERC20 {
     function decimals() external view returns (uint8);
 }
 
-
-
 contract Vault {
     using SafeTransferLib for address;
 
@@ -96,8 +94,7 @@ contract Vault {
         decimals = _decimals;
     }
 
-
-     // -----------------
+    // -----------------
     // User actions
     // -----------------
     function deposit(
@@ -112,8 +109,29 @@ contract Vault {
         _mint(receiver, shares);
         emit Deposit(msg.sender, receiver, assets, shares);
     }
-    
 
+    // -----------------
+    // Management
+    // -----------------
+    function setStrategy(IStrategy s, uint16 bps) external onlyManager {
+        require(s.want() == asset, "STRAT_WANT");
+        if (!_hasStrategy(s)) strategies.push(s);
+        targetBps[s] = bps;
+        emit StrategySet(address(s), bps);
+    }
+
+    function investIdle(bytes[][] calldata allSwapData) external onlyManager {
+        uint256 idle = _assetBal();
+        for (uint256 i; i < strategies.length; i++) {
+            IStrategy s = strategies[i];
+            uint256 toSend = (idle * targetBps[s]) / 1e4;
+            if (toSend > 0) {
+                asset.safeApprove(address(s), 0);
+                asset.safeApprove(address(s), toSend);
+                s.deposit(toSend, allSwapData[i]);
+            }
+        }
+    }
 
     // -----------------
     // View helpers
@@ -124,7 +142,6 @@ contract Vault {
         uint256 ta = totalAssets();
         return ts == 0 || ta == 0 ? assets : (assets * ts) / ta;
     }
-
 
     // -----------------
     // Internals
@@ -138,6 +155,9 @@ contract Vault {
         balanceOf[to] += amount;
     }
 
-
-
+    function _hasStrategy(IStrategy s) internal view returns (bool) {
+        for (uint256 i; i < strategies.length; i++)
+            if (address(strategies[i]) == address(s)) return true;
+        return false;
+    }
 }
