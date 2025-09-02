@@ -160,5 +160,28 @@ contract UniswapV3Strategy is IStrategy {
         _;
     }
 
-
+    constructor(
+        address _vault,
+        address _want,
+        address _pm,
+        address _pool,
+        address _exchanger,
+        address _oracle
+    ) {
+        require(
+            _vault != address(0) &&
+                _want != address(0) &&
+                _pm != address(0) &&
+                _pool != address(0) &&
+                _exchanger != address(0) &&
+                _oracle != address(0),
+            "BAD_ADDR"
+        );
+        vault = _vault;
+        wantToken = _want;
+        pm = INonfungiblePositionManager(_pm);
+        pool = IUniswapV3Pool(_pool);
+        exchanger = IExchangeHandler(_exchanger);
+        oracle = IOracleRouter(_oracle);
+    }
 }
