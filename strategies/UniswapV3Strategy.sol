@@ -2,7 +2,6 @@
 pragma solidity 0.7.6;
 pragma abicoder v2;
 
-
 import "../utils/v7/SafeTransferLibV7.sol";
 import "../interfaces/v7/IStrategyV7.sol";
 import "@uniswap/v3-core/contracts/libraries/TickMath.sol";
@@ -15,8 +14,11 @@ interface IERC20 {
 
     function transfer(address, uint256) external returns (bool);
 
-    function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
-
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external returns (bool);
 
     function decimals() external view returns (uint8);
 }
@@ -89,11 +91,7 @@ interface INonfungiblePositionManager {
     )
         external
         payable
-        returns (
-            uint128 liquidity,
-            uint256 amount0,
-            uint256 amount1
-        );
+        returns (uint128 liquidity, uint256 amount0, uint256 amount1);
 
     function decreaseLiquidity(
         DecreaseLiquidityParams calldata params
@@ -124,7 +122,6 @@ interface INonfungiblePositionManager {
         );
 }
 
-
 interface IUniswapV3Pool {
     function slot0()
         external
@@ -144,7 +141,24 @@ interface IUniswapV3Pool {
     function token1() external view returns (address);
 }
 
-
-
 /// @notice Strategy assumes `want` is either token0 or token1.
 /// Manager/keeper should prepare amounts (swap via ExchangeHandler) before calling deposit here.
+contract UniswapV3Strategy is IStrategy {
+    using SafeTransferLib for address;
+
+    address public immutable vault;
+    address public immutable wantToken; // e.g., USDC
+    INonfungiblePositionManager public immutable pm; // Uniswap's position manager
+    IUniswapV3Pool public immutable pool; // pool for (token0, token1, fee)
+    IExchangeHandler public immutable exchanger;
+    IOracleRouter public immutable oracle; // for valuation to `want`
+
+    uint256 public tokenId; // LP NFT id held by this strategy
+
+    modifier onlyVault() {
+        require(msg.sender == vault, "NOT_VAULT");
+        _;
+    }
+
+
+}
