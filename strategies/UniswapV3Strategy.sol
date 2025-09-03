@@ -209,5 +209,30 @@ contract UniswapV3Strategy is IStrategy {
         if (liquidity == 0 && fees0 == 0 && fees1 == 0) {
             return IERC20V7(wantToken).balanceOf(address(this));
         }
+
+        // Get current price
+        (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
+
+        // Estimate amounts for liquidity.
+        // Use Uniswap math libs to convert liquidity → token amounts
+        (uint256 amt0, uint256 amt1) = LiquidityAmounts.getAmountsForLiquidity(
+            sqrtPriceX96,
+            TickMath.getSqrtRatioAtTick(tickLower),
+            TickMath.getSqrtRatioAtTick(tickUpper),
+            liquidity
+        );
+        // For MVP, we conservatively value **only** uncollected fees + idle want to avoid complex math:
+        // Add uncollected fees
+        amt0 += fees0;
+        amt1 += fees1;
+
+        // Convert token0/token1 to `want` using oracle prices.
+        uint256 valueInWant = _convertToWant(token0, amt0) +
+            _convertToWant(token1, amt1);
+
+        // Add idle want in the contract (e.g., dust from mint/collect)
+        valueInWant += IERC20V7(wantToken).balanceOf(address(this));
+
+        return valueInWant;
     }
 }
