@@ -184,4 +184,30 @@ contract UniswapV3Strategy is IStrategy {
         exchanger = IExchangeHandler(_exchanger);
         oracle = IOracleRouter(_oracle);
     }
+
+    function totalAssets() public view override returns (uint256) {
+        // Value = current liquidity amounts + uncollected fees + idle want, all converted to `want`
+        if (tokenId == 0) {
+            return IERC20V7(wantToken).balanceOf(address(this));
+        }
+
+        (
+            ,
+            ,
+            address token0,
+            address token1,
+            ,
+            int24 tickLower,
+            int24 tickUpper,
+            uint128 liquidity,
+            ,
+            ,
+            uint128 fees0,
+            uint128 fees1
+        ) = pm.positions(tokenId);
+
+        if (liquidity == 0 && fees0 == 0 && fees1 == 0) {
+            return IERC20V7(wantToken).balanceOf(address(this));
+        }
+    }
 }
