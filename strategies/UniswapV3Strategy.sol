@@ -235,4 +235,26 @@ contract UniswapV3Strategy is IStrategy {
 
         return valueInWant;
     }
+
+
+
+    // ---------------- Internals ----------------
+
+    function _convertToWant(
+        address token,
+        uint256 amount
+    ) internal view returns (uint256) {
+        if (amount == 0) return 0;
+        if (token == wantToken) return amount;
+
+        // Convert via USD as numeraire using oracle
+        uint256 pToken = oracle.price(token); // 1e18
+        uint256 pWant = oracle.price(wantToken); // 1e18
+        if (pToken == 0 || pWant == 0) return 0;
+        // value_in_want = amount * pToken / pWant (adjust for token decimals if needed)
+        return (amount * pToken) / pWant;
+    }
+
+
+    
 }
