@@ -236,8 +236,6 @@ contract UniswapV3Strategy is IStrategy {
         return valueInWant;
     }
 
-
-
     // ---------------- Internals ----------------
 
     function _convertToWant(
@@ -254,7 +252,4 @@ contract UniswapV3Strategy is IStrategy {
         // value_in_want = amount * pToken / pWant (adjust for token decimals if needed)
         return (amount * pToken) / pWant;
     }
-
-
-    
 }
