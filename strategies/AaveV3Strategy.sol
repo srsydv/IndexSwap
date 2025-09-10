@@ -48,4 +48,40 @@ interface IAavePool {
     function getReserveData(
         address asset
     ) external view returns (DataTypes.ReserveData memory);
+
+
+contract AaveV3Strategy is IStrategy {
+    using SafeTransferLib for address;
+
+    address public immutable vault;
+    address public immutable wantToken;
+    IERC20 public immutable aToken;
+    IAavePool public immutable aave;
+
+    modifier onlyVault() {
+        require(msg.sender == vault, "NOT_VAULT");
+        _;
+    }
+
+    constructor(address _vault, address _want, address _aavePool) {
+        require(
+            _vault != address(0) &&
+                _want != address(0) &&
+                _aavePool != address(0),
+            "BAD_ADDR"
+        );
+        vault = _vault;
+        wantToken = _want;
+        aave = IAavePool(_aavePool);
+        // derive aToken from pool to avoid mismatches
+        DataTypes.ReserveData memory rd = aave.getReserveData(_want);
+        aToken = IERC20(rd.aTokenAddress);
+    }
+
+    // --- Views ---
+    function want() external view override returns (address) {
+        return wantToken;
+    }
+
+}
 }
