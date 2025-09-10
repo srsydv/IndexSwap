@@ -83,5 +83,15 @@ contract AaveV3Strategy is IStrategy {
         return wantToken;
     }
 
+     function totalAssets() public view override returns (uint256) {
+        // return IERC20(aToken).balanceOf(address(this));
+        uint256 raw = IERC20(address(aToken)).balanceOf(address(this));
+
+        uint8 aDec = IERC20Metadata(address(aToken)).decimals();
+        uint8 wantDec = IERC20Metadata(wantToken).decimals();
+
+        // return _scaleDecimals(raw, aDec, wantDec);
+    }
+
 }
 }
