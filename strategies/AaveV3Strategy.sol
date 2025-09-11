@@ -93,5 +93,25 @@ contract AaveV3Strategy is IStrategy {
         // return _scaleDecimals(raw, aDec, wantDec);
     }
 
+     // --- Vault calls ---
+    function deposit(
+        uint256 amountWant,
+        bytes[] calldata swapCalldatas
+    ) external override onlyVault {
+        // For Aave we don’t need swapCalldatas (but must keep signature for interface)
+        IERC20(wantToken).transferFrom(vault, address(this), amountWant);
+
+        wantToken.safeApprove(address(aave), 0);
+        wantToken.safeApprove(address(aave), amountWant);
+        aave.supply(wantToken, amountWant, address(this), 0);
+    }
+
+    function withdraw(
+        uint256 amount,
+        bytes[] calldata swapCalldatas
+    ) external override onlyVault returns (uint256 withdrawn) {
+        withdrawn = aave.withdraw(wantToken, amount, vault);
+    }
+
 }
 }
