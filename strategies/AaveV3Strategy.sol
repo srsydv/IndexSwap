@@ -112,6 +112,25 @@ contract AaveV3Strategy is IStrategy {
     ) external override onlyVault returns (uint256 withdrawn) {
         withdrawn = aave.withdraw(wantToken, amount, vault);
     }
+    function harvest(
+     bytes[] calldata swapCalldatas
+    ) external override onlyVault returns (uint256 profit) {
+        // No manual harvest in Aave (interest auto-accrues)
+        return 0;
+    }
+
+    function _scaleDecimals(
+        uint256 amount,
+        uint8 fromDec,
+        uint8 toDec
+    ) internal pure returns (uint256) {
+        if (fromDec == toDec) return amount;
+        if (fromDec < toDec) {
+        return amount * (10 ** (toDec - fromDec));
+        } else {
+        return amount / (10 ** (fromDec - toDec));
+        }
+    }
 
 }
 }
