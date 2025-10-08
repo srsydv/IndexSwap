@@ -237,7 +237,7 @@ contract UniswapV3Strategy is IStrategy {
         return valueInWant;
     }
 
-     function knowYourAssets() public returns (uint256) {
+    function knowYourAssets() public returns (uint256) {
         // Value = current liquidity amounts + uncollected fees + idle want, all converted to `want`
         if (tokenId == 0) {
             return IERC20(wantToken).balanceOf(address(this));
