@@ -185,10 +185,10 @@ contract UniswapV3Strategy is IStrategy {
         oracle = IOracleRouter(_oracle);
     }
 
-    function totalAssets() public view override returns (uint256) {
+  function totalAssets() public view override returns (uint256) {
         // Value = current liquidity amounts + uncollected fees + idle want, all converted to `want`
         if (tokenId == 0) {
-            return IERC20V7(wantToken).balanceOf(address(this));
+            return IERC20(wantToken).balanceOf(address(this));
         }
 
         (
@@ -207,7 +207,7 @@ contract UniswapV3Strategy is IStrategy {
         ) = pm.positions(tokenId);
 
         if (liquidity == 0 && fees0 == 0 && fees1 == 0) {
-            return IERC20V7(wantToken).balanceOf(address(this));
+            return IERC20(wantToken).balanceOf(address(this));
         }
 
         // Get current price
@@ -215,10 +215,10 @@ contract UniswapV3Strategy is IStrategy {
 
         // Estimate amounts for liquidity.
         // Use Uniswap math libs to convert liquidity → token amounts
-        (uint256 amt0, uint256 amt1) = LiquidityAmounts.getAmountsForLiquidity(
+        (uint256 amt0, uint256 amt1) = math.getAmountsForLiquidity(
             sqrtPriceX96,
-            TickMath.getSqrtRatioAtTick(tickLower),
-            TickMath.getSqrtRatioAtTick(tickUpper),
+            math.getSqrtRatioAtTick(tickLower),
+            math.getSqrtRatioAtTick(tickUpper),
             liquidity
         );
         // For MVP, we conservatively value **only** uncollected fees + idle want to avoid complex math:
@@ -231,10 +231,12 @@ contract UniswapV3Strategy is IStrategy {
             _convertToWant(token1, amt1);
 
         // Add idle want in the contract (e.g., dust from mint/collect)
-        valueInWant += IERC20V7(wantToken).balanceOf(address(this));
+        valueInWant += IERC20(wantToken).balanceOf(address(this));
 
+        // emit totalAsset(amt0, amt1, fees0, fees1);
         return valueInWant;
     }
+
 
     // ---------------- Internals ----------------
 
