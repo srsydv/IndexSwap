@@ -237,6 +237,58 @@ contract UniswapV3Strategy is IStrategy {
         return valueInWant;
     }
 
+     function knowYourAssets() public returns (uint256) {
+        // Value = current liquidity amounts + uncollected fees + idle want, all converted to `want`
+        if (tokenId == 0) {
+            return IERC20(wantToken).balanceOf(address(this));
+        }
+
+        (
+            ,
+            ,
+            address token0,
+            address token1,
+            ,
+            int24 tickLower,
+            int24 tickUpper,
+            uint128 liquidity,
+            ,
+            ,
+            uint128 fees0,
+            uint128 fees1
+        ) = pm.positions(tokenId);
+
+        if (liquidity == 0 && fees0 == 0 && fees1 == 0) {
+            return IERC20(wantToken).balanceOf(address(this));
+        }
+
+        // Get current price
+        (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
+
+        // Estimate amounts for liquidity.
+        // Use Uniswap math libs to convert liquidity → token amounts
+        (uint256 amt0, uint256 amt1) = math.getAmountsForLiquidity(
+            sqrtPriceX96,
+            math.getSqrtRatioAtTick(tickLower),
+            math.getSqrtRatioAtTick(tickUpper),
+            liquidity
+        );
+        // For MVP, we conservatively value **only** uncollected fees + idle want to avoid complex math:
+        // Add uncollected fees
+        amt0 += fees0;
+        amt1 += fees1;
+
+        // Convert token0/token1 to `want` using oracle prices.
+        uint256 valueInWant = _convertToWant(token0, amt0) +
+            _convertToWant(token1, amt1);
+
+        // Add idle want in the contract (e.g., dust from mint/collect)
+        valueInWant += IERC20(wantToken).balanceOf(address(this));
+
+        emit totalAsset(amt0, amt1, fees0, fees1);
+        return valueInWant;
+    }
+
     // ---------------- Internals ----------------
 
     function _convertToWant(
