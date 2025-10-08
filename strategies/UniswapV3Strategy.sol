@@ -185,7 +185,7 @@ contract UniswapV3Strategy is IStrategy {
         oracle = IOracleRouter(_oracle);
     }
 
-  function totalAssets() public view override returns (uint256) {
+    function totalAssets() public view override returns (uint256) {
         // Value = current liquidity amounts + uncollected fees + idle want, all converted to `want`
         if (tokenId == 0) {
             return IERC20(wantToken).balanceOf(address(this));
@@ -236,7 +236,6 @@ contract UniswapV3Strategy is IStrategy {
         // emit totalAsset(amt0, amt1, fees0, fees1);
         return valueInWant;
     }
-
 
     // ---------------- Internals ----------------
 
