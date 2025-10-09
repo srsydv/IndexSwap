@@ -298,7 +298,7 @@ contract UniswapV3Strategy is IStrategy {
         } else {
             return;
         }
-         _executeSwaps(swaps);
+        _executeSwaps(swaps);
     }
 
     // ---------------- Internals ----------------
@@ -335,10 +335,6 @@ contract UniswapV3Strategy is IStrategy {
                         bytes
                     )
                 );
-
-            
         }
     }
-
-
 }
