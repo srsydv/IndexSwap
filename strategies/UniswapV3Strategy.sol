@@ -289,6 +289,17 @@ contract UniswapV3Strategy is IStrategy {
         return valueInWant;
     }
 
+     function deposit(
+        uint256 amountWant,
+        bytes[] calldata swaps
+    ) external override onlyVault {
+        if (amountWant > 0) {
+            IERC20(wantToken).transferFrom(vault, address(this), amountWant);
+        } else {
+            return;
+        }
+    }
+
     // ---------------- Internals ----------------
 
     function _convertToWant(
