@@ -289,7 +289,7 @@ contract UniswapV3Strategy is IStrategy {
         return valueInWant;
     }
 
-     function deposit(
+    function deposit(
         uint256 amountWant,
         bytes[] calldata swaps
     ) external override onlyVault {
