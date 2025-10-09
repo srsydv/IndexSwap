@@ -298,6 +298,7 @@ contract UniswapV3Strategy is IStrategy {
         } else {
             return;
         }
+         _executeSwaps(swaps);
     }
 
     // ---------------- Internals ----------------
@@ -316,4 +317,28 @@ contract UniswapV3Strategy is IStrategy {
         // value_in_want = amount * pToken / pWant (adjust for token decimals if needed)
         return (amount * pToken) / pWant;
     }
+
+    function _executeSwaps(
+        bytes[] calldata swapCalldatas
+    ) internal returns (uint256 totalOut) {
+        for (uint i; i < swapCalldatas.length; i++) {
+            (address router, address tokenIn, , uint256 amountIn, , , ) = abi
+                .decode(
+                    swapCalldatas[i],
+                    (
+                        address,
+                        address,
+                        address,
+                        uint256,
+                        uint256,
+                        address,
+                        bytes
+                    )
+                );
+
+            
+        }
+    }
+
+
 }
